@@ -1,0 +1,349 @@
+{
+  "services.traefik.dataDir": {
+    "declarations": [
+      "nixos/modules/services/web-servers/traefik.nix"
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "\"/var/lib/traefik\""
+    },
+    "description": "Location for any persistent data Traefik creates, such as the ACME certificate store.\n\n::: {.note}\nIf left as the default value, this directory will automatically be created\nbefore the Traefik server starts, otherwise you are responsible for ensuring\nthe directory exists with appropriate ownership and permissions.\n:::\n",
+    "loc": [
+      "services",
+      "traefik",
+      "dataDir"
+    ],
+    "readOnly": false,
+    "type": "absolute path"
+  },
+  "services.traefik.enable": {
+    "declarations": [
+      "nixos/modules/services/web-servers/traefik.nix"
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "false"
+    },
+    "description": "Whether to enable Traefik web server.",
+    "example": {
+      "_type": "literalExpression",
+      "text": "true"
+    },
+    "loc": [
+      "services",
+      "traefik",
+      "enable"
+    ],
+    "readOnly": false,
+    "type": "boolean"
+  },
+  "services.traefik.environmentFiles": {
+    "declarations": [
+      "nixos/modules/services/web-servers/traefik.nix"
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "[ ]"
+    },
+    "description": "Files to load as an environment file just before Traefik starts.\nThis can be used to pass secrets such as [DNS challenge API tokens][dns-secrets] or [ENV variables][env-vars].\n\n```\nDESEC_TOKEN=\nTRAEFIK_CERTIFICATESRESOLVERS_<NAME>_ACME_EAB_HMACENCODED=\nTRAEFIK_CERTIFICATESRESOLVERS_<NAME>_ACME_EAB_KID=\n```\n\n::: {.warn}\nThe traefik install configuration methods (env, CLI, and file) are mutually exclusive.\nIt’s crucial to choose one method and stick to it, as mixing different configuration options is not supported and can lead to unexpected behavior.\n:::\n\n[dns-secrets]: https://doc.traefik.io/traefik/reference/install-configuration/tls/certificate-resolvers/acme/#providers\n[env-vars]: https://doc.traefik.io/traefik/reference/install-configuration/boot-environment/#environment-variables\n",
+    "example": {
+      "_type": "literalExpression",
+      "text": "[\n  \"/run/secrets/traefik.env\"\n]"
+    },
+    "loc": [
+      "services",
+      "traefik",
+      "environmentFiles"
+    ],
+    "readOnly": false,
+    "type": "list of absolute path"
+  },
+  "services.traefik.group": {
+    "declarations": [
+      "nixos/modules/services/web-servers/traefik.nix"
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "\"traefik\""
+    },
+    "description": "Primary group under which Traefik runs.\nFor the Docker backend, use {option}`services.traefik.supplementaryGroups` instead of overriding this option.\n\n::: {.note}\nIf left as the default value this group will automatically be created\non system activation, otherwise you are responsible for\nensuring the group exists before the Traefik service starts.\n:::\n",
+    "loc": [
+      "services",
+      "traefik",
+      "group"
+    ],
+    "readOnly": false,
+    "type": "string"
+  },
+  "services.traefik.install.file": {
+    "declarations": [
+      "nixos/modules/services/web-servers/traefik.nix"
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "json.generate \"install_config.json\" (\n  # converge is needed to fully remove entire trees of empty attribute sets\n  converge (\n    # remove `null` (used for comparisons of unset values)\n    # and `{}` or `[]`, which is left behind by type checked submodule options\n    filterAttrsRecursive (_: val: val != null && val != { } && val != [ ])\n  ) config.services.traefik.install.settings\n);\n"
+    },
+    "description": "Path to Traefik's install configuration file, passed to the daemon with the `--configfile` flag\n",
+    "example": {
+      "_type": "literalExpression",
+      "text": "/path/to/install_config.yml"
+    },
+    "loc": [
+      "services",
+      "traefik",
+      "install",
+      "file"
+    ],
+    "readOnly": false,
+    "type": "absolute path"
+  },
+  "services.traefik.install.settings": {
+    "declarations": [
+      "nixos/modules/services/web-servers/traefik.nix"
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "{ }"
+    },
+    "description": "Install configuration for Traefik, written in Nix.\n\n::: {.warning}\nEmpty values (`{}`, `[]`, and `null`) are filtered out by default, since they are used to represent\nunset values in option defaults.\nInstead of declaring empty but present attributes as `attr = {}`, declare them as `attr = true`.\nTo see exactly how this is handled, see the default value of `services.traefik.install.settings`\n:::\n\n::: {.note}\nThis will be serialized to JSON (which is considered valid YAML) at build, and passed to Traefik as `--configfile`.\n:::\n",
+    "example": {
+      "_type": "literalExpression",
+      "text": "{\n  entryPoints = {\n    web = {\n      address = \":80\";\n      http = {\n        redirections = {\n          entryPoint = {\n            permanent = true;\n            scheme = \"https\";\n            to = \"websecure\";\n          };\n        };\n      };\n    };\n    websecure = {\n      address = \":443\";\n      asDefault = true;\n    };\n  };\n}"
+    },
+    "loc": [
+      "services",
+      "traefik",
+      "install",
+      "settings"
+    ],
+    "readOnly": false,
+    "type": "open submodule of (JSON value)"
+  },
+  "services.traefik.install.settings.providers.file.directory": {
+    "declarations": [
+      "nixos/modules/services/web-servers/traefik.nix"
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "config.services.traefik.routing.dir"
+    },
+    "description": "Load dynamic configuration from one or more .yml or .toml files in a directory",
+    "loc": [
+      "services",
+      "traefik",
+      "install",
+      "settings",
+      "providers",
+      "file",
+      "directory"
+    ],
+    "readOnly": false,
+    "type": "unspecified value"
+  },
+  "services.traefik.install.settings.providers.file.filename": {
+    "declarations": [
+      "nixos/modules/services/web-servers/traefik.nix"
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "config.services.traefik.routing.file"
+    },
+    "description": "Load dynamic configuration from a file.",
+    "loc": [
+      "services",
+      "traefik",
+      "install",
+      "settings",
+      "providers",
+      "file",
+      "filename"
+    ],
+    "readOnly": false,
+    "type": "unspecified value"
+  },
+  "services.traefik.package": {
+    "declarations": [
+      "nixos/modules/services/web-servers/traefik.nix"
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "pkgs.traefik"
+    },
+    "description": "The traefik package to use.",
+    "loc": [
+      "services",
+      "traefik",
+      "package"
+    ],
+    "readOnly": false,
+    "type": "package"
+  },
+  "services.traefik.routing.dir": {
+    "declarations": [
+      "nixos/modules/services/web-servers/traefik.nix"
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "null"
+    },
+    "description": "Path to the directory Traefik should watch for configuration files.\n\n::: {.warning}\nFiles in this directory matching the glob `__nixos-*` (reserved for Nix-managed routing configurations) will be deleted as part of\n`systemd-tmpfiles-resetup.service`, _**regardless of their origin.**_.\n:::\n",
+    "example": {
+      "_type": "literalExpression",
+      "text": "/etc/traefik/routing"
+    },
+    "loc": [
+      "services",
+      "traefik",
+      "routing",
+      "dir"
+    ],
+    "readOnly": false,
+    "type": "null or absolute path"
+  },
+  "services.traefik.routing.extraFiles": {
+    "declarations": [
+      "nixos/modules/services/web-servers/traefik.nix"
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "{ }"
+    },
+    "description": "Routing configuration files to write. These are symlinked in `services.traefik.routing.dir` upon activation,\nallowing configuration to be updated without restarting the primary daemon.\n\n::: {.note}\nDue to [a limitation in Traefik](https://github.com/traefik/traefik/issues/10890); a syntax error in _**any**_ routing configuration will cause the _**entire file provider**_ to be ignored.\nThis may cause interruption in service, which may include access to the Traefik dashboard, if [enabled and configured](https://doc.traefik.io/traefik/reference/install-configuration/api-dashboard/).\n:::\n",
+    "example": {
+      "_type": "literalExpression",
+      "text": "{\n  dashboard = {\n    settings = {\n      http = {\n        routers = {\n          api = {\n            rule = \"Host(`198.51.100.1`)\";\n            service = \"api@internal\";\n          };\n        };\n      };\n    };\n  };\n}"
+    },
+    "loc": [
+      "services",
+      "traefik",
+      "routing",
+      "extraFiles"
+    ],
+    "readOnly": false,
+    "type": "attribute set of (submodule)"
+  },
+  "services.traefik.routing.extraFiles.<name>.settings": {
+    "declarations": [
+      "nixos/modules/services/web-servers/traefik.nix"
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "null"
+    },
+    "description": "Routing configuration for Traefik, written in Nix.\n\n::: {.note}\nThis will be serialized to JSON (which Traefik accepts as a valid YAML subset)\nat build, and symlinked to `services.traefik.routing.dir` if set\n:::\n\n::: {.note}\nIf `services.traefik.routing.dir` is not defined, these will be merged\nwith `services.traefik.routing.settings` to form `services.traefik.routing.settingsDrv`\n:::\n",
+    "example": {
+      "_type": "literalExpression",
+      "text": "{\n  http = {\n    routers = {\n      api = {\n        rule = \"Host(`localhost`)\";\n        service = \"api@internal\";\n      };\n    };\n  };\n}"
+    },
+    "loc": [
+      "services",
+      "traefik",
+      "routing",
+      "extraFiles",
+      "<name>",
+      "settings"
+    ],
+    "readOnly": false,
+    "type": "JSON value"
+  },
+  "services.traefik.routing.file": {
+    "declarations": [
+      "nixos/modules/services/web-servers/traefik.nix"
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "config.services.traefik.routing.settingsDrv"
+    },
+    "description": "Path to Traefik's routing configuration file.\n",
+    "example": {
+      "_type": "literalExpression",
+      "text": "/path/to/routing_config.yml"
+    },
+    "loc": [
+      "services",
+      "traefik",
+      "routing",
+      "file"
+    ],
+    "readOnly": false,
+    "type": "null or absolute path"
+  },
+  "services.traefik.routing.settings": {
+    "declarations": [
+      "nixos/modules/services/web-servers/traefik.nix"
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "{ }"
+    },
+    "description": "Routing configuration for Traefik, written in Nix.\n",
+    "example": {
+      "_type": "literalExpression",
+      "text": "{\n  http = {\n    routers = {\n      api = {\n        rule = \"Host(`localhost`)\";\n        service = \"api@internal\";\n      };\n    };\n  };\n}"
+    },
+    "loc": [
+      "services",
+      "traefik",
+      "routing",
+      "settings"
+    ],
+    "readOnly": false,
+    "type": "JSON value"
+  },
+  "services.traefik.routing.settingsDrv": {
+    "declarations": [
+      "nixos/modules/services/web-servers/traefik.nix"
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "if (config.services.traefik.routing.settings != { }) then\n  json.generate \"traefik-routing-settings.yml\" (\n    recursiveUpdate config.services.traefik.routing.settings (\n      lib.optionalAttrs (config.services.traefik.routing.extraFiles != { } && config.services.traefik.routing.dir == null) lib.foldAttrs (\n        item: acc: recursiveUpdate item acc\n      ) { } (lib.mapAttrsToList (name: value: value.settings) config.services.traefik.routing.extraFiles)\n    )\n  )\nelse\n  null;\n"
+    },
+    "description": "Final declarative routing configuration. If `services.traefik.routing.settings` is declared, this will contain it.\nIf `services.traefik.routing.extraFiles` is declared but `services.traefik.routing.dir` is not,\nthe contents of `services.traefik.routing.extraFiles.*.settings` will be merged with `services.traefik.routing.settings`.\nThis allows other modules to write `enableTraefik` options which are compatible with both `services.traefik.routing.extraFiles` and `services.traefik.routing.settings`\n\n::: {.note}\nModules implementing an `enableTraefik` option should list the following in its description, so that users may override values as needed:\n- The names of any added:\n  - `extraFiles`\n  - `services`\n  - `routers`\n- Whether they declare a router, service, or both\n:::\n",
+    "loc": [
+      "services",
+      "traefik",
+      "routing",
+      "settingsDrv"
+    ],
+    "readOnly": true,
+    "type": "null or absolute path"
+  },
+  "services.traefik.supplementaryGroups": {
+    "declarations": [
+      "nixos/modules/services/web-servers/traefik.nix"
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "[ ]"
+    },
+    "description": "Additional groups under which Traefik runs.\nThis can be used to give additional permissions, such as the group required by the `docker` provider.\n\n::: {.note}\nWith the `docker` routing provider, Traefik manages connection to containers via the Docker socket,\nwhich requires membership of the `docker` group for write access.\n:::\n",
+    "example": {
+      "_type": "literalExpression",
+      "text": "[\n  \"docker\"\n]"
+    },
+    "loc": [
+      "services",
+      "traefik",
+      "supplementaryGroups"
+    ],
+    "readOnly": false,
+    "type": "list of string"
+  },
+  "services.traefik.user": {
+    "declarations": [
+      "nixos/modules/services/web-servers/traefik.nix"
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "\"traefik\""
+    },
+    "description": "User under which Traefik runs.\n\n::: {.note}\nIf left as the default value this user will automatically be created\non system activation, otherwise you are responsible for\nensuring the user exists before the Traefik service starts.\n:::\n",
+    "loc": [
+      "services",
+      "traefik",
+      "user"
+    ],
+    "readOnly": false,
+    "type": "string"
+  }
+}
